@@ -1,6 +1,7 @@
-# API Learning Journey 
+# API Learning 
 
 A learning project building a REST API with authentication and authorization.
+I am making this without any idea, just trying to code the API logic🥲. 
 
 ## Tech Stack
 - **Backend**: Express.js
