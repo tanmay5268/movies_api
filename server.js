@@ -2,6 +2,7 @@ import express from 'express';
 import { Movie,db_connect,User} from './db.js';
 import cors from 'cors';
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 import { verifyToken } from './auth.js';
 db_connect();
 
@@ -15,18 +16,19 @@ app.get('/api/movies', async (req, res) => {
         res.json(data);
     });
 });
-app.get('/api/movies/:name', async (req, res) => {//add fuzzy searching
+app.get('/api/movies/:name', async (req, res) => {
 
     const movieName = req.params.name;
-    await Movie.find({ title: movieName }).then((data) => {
+    await Movie.find({ title: { $regex: movieName, $options: 'i' } }).then((data) => {
         res.json(data);
     });
 }); 
 app.post('/api/register',async (req,res)=>{
     const {userName,password,type} = req.body;
+    const hash = bcrypt.hashSync(password, 10);
     const newUser = new User({
         username:userName,
-        password:password,
+        password:hash,
         role:type
     })
     await newUser.save();
@@ -38,12 +40,13 @@ app.post('/api/register',async (req,res)=>{
 app.post('/api/login', async (req, res) => { // add bcrypt later for password hashing..
     try {
         const { userName, password } = req.body;
+        const hash = bcrypt.hashSync(password, 10);
         const user = await User.findOne({ username: userName });
         if (!user) {
-            return res.status(401).json({ error: 'Authentication failed' });
+            return res.status(401).json({ error: 'userAuthentication failed' });
         }
-        if (user.password !== password) {
-            return res.status(401).json({ error: 'Authentication failed' });
+        if (!bcrypt.compareSync(password, hash)) {
+            return res.status(401).json({ error: 'passAuthentication failed' });
         }
 
         const token = jwt.sign(
@@ -59,6 +62,7 @@ app.post('/api/login', async (req, res) => { // add bcrypt later for password ha
 app.post('/api/add-movie', verifyToken, async (req, res) => {
     try {
         const { title, year, rating, genre, director } = req.body;
+
         if (!title || !year) {
             return res.status(400).json({ error: 'title and year are required' });
         }

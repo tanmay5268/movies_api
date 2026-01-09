@@ -20,7 +20,7 @@ export function db_connect() {
     
 }
 const movieSchema = new mongoose.Schema({
-    title: String,
+    title: { type: String, required: true, unique: true },
     year: Number,
     rating: String,
     genre: Array,
