@@ -4,18 +4,20 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { verifyToken } from './auth.js';
-db_connect();
+
 
 const app = express();
 const PORT = 3000;
+db_connect();
 app.use(cors());
 app.use(express.json())
-app.get('/api/movies', async (req, res) => {
 
+app.get('/api/movies', async (req, res) => {
     await Movie.find().then((data) => {
         res.json(data);
     });
 });
+
 app.get('/api/movies/:name', async (req, res) => {
 
     const movieName = req.params.name;
@@ -23,6 +25,7 @@ app.get('/api/movies/:name', async (req, res) => {
         res.json(data);
     });
 }); 
+
 app.post('/api/register',async (req,res)=>{
     const {userName,password,type} = req.body;
     const hash = bcrypt.hashSync(password, 10);
@@ -37,15 +40,14 @@ app.post('/api/register',async (req,res)=>{
     })
 })
 
-app.post('/api/login', async (req, res) => { // add bcrypt later for password hashing..
+app.post('/api/login', async (req, res) => { 
     try {
         const { userName, password } = req.body;
-        const hash = bcrypt.hashSync(password, 10);
         const user = await User.findOne({ username: userName });
         if (!user) {
             return res.status(401).json({ error: 'userAuthentication failed' });
         }
-        if (!bcrypt.compareSync(password, hash)) {
+        if (!bcrypt.compareSync(password, user.password)) {
             return res.status(401).json({ error: 'passAuthentication failed' });
         }
 
@@ -80,6 +82,11 @@ app.post('/api/add-movie', verifyToken, async (req, res) => {
         res.status(500).json({ error: 'Failed to add movie', details: err.message });
     }
 });
+
+//delete-movie
+//get registered users.
+//update movie info
+//get profile
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 
 
-export function verifyToken(req, res, next) {
+export function verifyToken(req, res, next) { //only admins are allowed
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Missing Authorization header' });
