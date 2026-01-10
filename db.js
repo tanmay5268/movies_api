@@ -5,8 +5,6 @@ export function db_connect() {
     async function connect() {
         try {
             await mongoose.connect(process.env.MONGODB_URL).then(() => {
-                console.log("Connected to mongoDB successfully");
-                console.log(Movie);
             });
         }
         catch (err) {
@@ -21,7 +19,7 @@ const movieSchema = new mongoose.Schema({
     year: Number,
     rating: String,
     genre: Array,
-    director: String
+    director: String || array
 });
 export const Movie = mongoose.model('Movie', movieSchema);
 

@@ -69,6 +69,7 @@ app.post('/api/add-movie', verifyToken, async (req, res) => {
         if (!title || !year) {
             return res.status(400).json({ error: 'title and year are required' });
         }
+        
 
         const newMovie = new Movie({
             title,
@@ -85,31 +86,41 @@ app.post('/api/add-movie', verifyToken, async (req, res) => {
 });
 
 //delete-movie
-app.delete('/api/delete-movie/:name',verifyToken,async (req,res)=>{
+app.delete('/api/delete-movie/:name', verifyToken, async (req, res) => {
     try {
         const movieName = req.params.name;
-        const movie = await Movie.find( {title:movieName} );
-        const mongodb_response= await Movie.deleteOne(movie[0]._id)
-        const response ={
-            status:"success",
-            deleted_item:movie,
-            mongodb_response:mongodb_response
-        } 
+        const movie = await Movie.find({ title: movieName });
+        const mongodb_response = await Movie.deleteOne(movie[0]._id)
+        const response = {
+            status: "success",
+            deleted_item: movie,
+            mongodb_response: mongodb_response
+        }
         res.status(204).json(response);
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete movie', details: err.message });
     }
 })
 //get registered users.
-app.get('/api/get-users',verifyToken,async(req,res)=>{
+app.get('/api/get-users', verifyToken, async (req, res) => {
     await User.find({}).select('username role -_id').then((data) => {
         res.json(data);
     });
 });
 //update movie info
-
+app.patch('/api/update-movie/:name',verifyToken,async(req,res)=>{
+    try{
+        const movieName = req.params.name;
+        console.log(req.body);
+        const movie = await Movie.findOneAndUpdate({ title: movieName }, req.body, { returnNewDocument: true });
+        res.status(200).json(movie);
+    }
+    catch(error){
+        res.status(500).json({ error: 'Failed to update movie', details: err.message });
+    }
+})
 //get profile
-app.get('/api/get-profile',async(req,res)=>{
+app.get('/api/get-profile', async (req, res) => {
     let token = req.headers.authorization;
     if (!token || !token.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Missing Authorization header' });
