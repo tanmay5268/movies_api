@@ -36,24 +36,31 @@ I am making this without any idea, just trying to code the API logic🥲.
 
 **Next**: Delete, update, and get endpoints
 
-<!-- ---
+---
 
-### Session 2: [Your Next Update]
-**Date**: TBD
+### Session 2: Delete, Users & Profile
+**Date**: Jan 10, 2026
 
 **Learning**:
-- [Add here]
+- Delete operations with MongoDB `deleteOne()`
+- Decoding JWT tokens without verification using `jwtDecode`
+- Input validation (required fields)
+- Using `.select()` to exclude/include fields from queries
+- Error handling with try-catch blocks
+- Different token extraction patterns
 
 **Endpoints Added**:
-- [Add here]
+- `DELETE /api/delete-movie/:name` - Delete movie (admin only)
+- `GET /api/get-users` - List all registered users (admin only)
+- `GET /api/get-profile` - Get current user profile info
 
---- -->
+--- 
 
 ## Current Status
 - ✅ Auth system working
 - ✅ Movie CRUD read
 - ⏳ Movie CRUD delete/update
-- ⏳ User profile endpoint
+- ✅ User profile endpoint
 - ⏳ Input validationusing Zod module
 
 ## Notes

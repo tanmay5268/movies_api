@@ -1,9 +1,10 @@
 import express from 'express';
-import { Movie,db_connect,User} from './db.js';
+import { Movie, db_connect, User } from './db.js';
 import cors from 'cors';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { verifyToken } from './auth.js';
+import { jwtDecode } from 'jwt-decode';
 
 
 const app = express();
@@ -24,23 +25,23 @@ app.get('/api/movies/:name', async (req, res) => {
     await Movie.find({ title: { $regex: movieName, $options: 'i' } }).then((data) => {
         res.json(data);
     });
-}); 
+});
 
-app.post('/api/register',async (req,res)=>{
-    const {userName,password,type} = req.body;
+app.post('/api/register', async (req, res) => {
+    const { userName, password, type } = req.body;
     const hash = bcrypt.hashSync(password, 10);
     const newUser = new User({
-        username:userName,
-        password:hash,
-        role:type
+        username: userName,
+        password: hash,
+        role: type
     })
     await newUser.save();
     res.status(200).json({
-        succes:"User registered"
+        succes: "User registered"
     })
 })
 
-app.post('/api/login', async (req, res) => { 
+app.post('/api/login', async (req, res) => {
     try {
         const { userName, password } = req.body;
         const user = await User.findOne({ username: userName });
@@ -52,7 +53,7 @@ app.post('/api/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { userId: user._id, role: user.role },'secret',
+            { userId: user._id, role: user.role }, 'secret',
             { expiresIn: '1h' }
         );
         res.status(200).json({ token });
@@ -84,10 +85,41 @@ app.post('/api/add-movie', verifyToken, async (req, res) => {
 });
 
 //delete-movie
+app.delete('/api/delete-movie/:name',verifyToken,async (req,res)=>{
+    try {
+        const movieName = req.params.name;
+        const movie = await Movie.find( {title:movieName} );
+        const mongodb_response= await Movie.deleteOne(movie[0]._id)
+        const response ={
+            status:"success",
+            deleted_item:movie,
+            mongodb_response:mongodb_response
+        } 
+        res.status(204).json(response);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete movie', details: err.message });
+    }
+})
 //get registered users.
+app.get('/api/get-users',verifyToken,async(req,res)=>{
+    await User.find({}).select('username role -_id').then((data) => {
+        res.json(data);
+    });
+});
 //update movie info
-//get profile
 
+//get profile
+app.get('/api/get-profile',async(req,res)=>{
+    let token = req.headers.authorization;
+    if (!token || !token.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Missing Authorization header' });
+    }
+    token = token.split(' ')[1]
+    const decodedToken = jwtDecode(token);
+    await User.findById(decodedToken.userId).select('username  role -_id').then((data) => {
+        res.json(data);
+    });
+});
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
