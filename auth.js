@@ -9,8 +9,8 @@ export function verifyToken(req, res, next) {
 
     const token = authHeader.split(' ')[1];
     try {
-            const decoded = jwt.verify(token, 'secret');
-            console.log(decoded)
+        const decoded = jwt.verify(token, 'secret');
+        console.log(decoded)
         req.user = decoded;
         req.userId = decoded.userId;
         const role = req.user.role

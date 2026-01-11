@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { verifyToken } from './auth.js';
 import { jwtDecode } from 'jwt-decode';
+import { review } from './aiController.js';
 
 
 const app = express();
@@ -14,7 +15,7 @@ app.use(cors());
 app.use(express.json())
 
 app.get('/api/movies', async (req, res) => {
-    await Movie.find().then((data) => {
+    await Movie.find().select('-_id -votes').then((data) => {
         res.json(data);
     });
 });
@@ -22,7 +23,7 @@ app.get('/api/movies', async (req, res) => {
 app.get('/api/movies/:name', async (req, res) => {
 
     const movieName = req.params.name;
-    await Movie.find({ title: { $regex: movieName, $options: 'i' } }).then((data) => {
+    await Movie.find({ title: { $regex: movieName, $options: 'i' } }).select('-_id -votes').then((data) => {
         res.json(data);
     });
 });
@@ -65,12 +66,10 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/add-movie', verifyToken, async (req, res) => {
     try {
         const { title, year, rating, genre, director } = req.body;
-
         if (!title || !year) {
             return res.status(400).json({ error: 'title and year are required' });
         }
         
-
         const newMovie = new Movie({
             title,
             year,
@@ -98,7 +97,7 @@ app.delete('/api/delete-movie/:name', verifyToken, async (req, res) => {
         }
         res.status(204).json(response);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to delete movie', details: err.message });
+        res.status(500).json({ error: 'Failed to delete movie', details: error.message });
     }
 })
 //get registered users.
@@ -116,7 +115,7 @@ app.patch('/api/update-movie/:name',verifyToken,async(req,res)=>{
         res.status(200).json(movie);
     }
     catch(error){
-        res.status(500).json({ error: 'Failed to update movie', details: err.message });
+        res.status(500).json({ error: 'Failed to update movie', details: error.message });
     }
 })
 //get profile
@@ -131,6 +130,30 @@ app.get('/api/get-profile', async (req, res) => {
         res.json(data);
     });
 });
+//gemini route
+app.get('/api/movie-review/:name',async (req,res)=>{
+    try {
+        let token = req.headers.authorization;
+        if (!token || !token.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Missing Authorization header' });
+        }
+        token = token.split(' ')[1]
+        const decodedToken = jwt.verify(token, 'secret');
+        await User.findById(decodedToken.userId);
+    } catch (error) {
+        res.status(500).json({
+            message:error.message
+        })
+    }finally{
+        const movieName = req.params.name;
+        await Movie.findOne({ title: { $regex: movieName, $options: 'i' } }).select('-_id -votes').then(async (data) => {
+            const respone_review =  await review(data);
+            res.json({
+                review:respone_review
+            })
+        });
+    }
+})
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
