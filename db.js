@@ -5,6 +5,7 @@ export function db_connect() {
     async function connect() {
         try {
             await mongoose.connect(process.env.MONGODB_URL).then(() => {
+                console.log("Connected to mongoDB on " + process.env.MONGODB_URL);
             });
         }
         catch (err) {

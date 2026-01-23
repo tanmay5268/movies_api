@@ -10,6 +10,7 @@ import { review } from './aiController.js';
 
 const app = express();
 const PORT = 3000;
+
 db_connect();
 app.use(cors());
 app.use(express.json())
