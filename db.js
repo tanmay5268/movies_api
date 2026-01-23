@@ -12,8 +12,8 @@ export function db_connect() {
         }
     }
     connect();
-
 }
+
 const movieSchema = new mongoose.Schema({
     title: { type: String, required: true, unique: true },
     year: Number,

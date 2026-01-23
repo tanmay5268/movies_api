@@ -4,5 +4,4 @@ dist/
 build/
 .DS_Store
 .vscode/
-movies.json
 packege-lock.json
